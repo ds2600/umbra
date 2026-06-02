@@ -55,6 +55,10 @@ sudo apt update && sudo apt upgrade -y
 ## Step 2 — Install packages
 
 ```bash
+sudo apt install -y software-properties-common
+sudo add-apt-repository ppa:ondrej/php
+sudo apt update
+
 sudo apt install -y nginx libnginx-mod-rtmp php8.1-fpm php8.1-sqlite3 stunnel4
 ```
 
