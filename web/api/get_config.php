@@ -18,6 +18,15 @@ echo json_encode([
         'facebook' => (bool)($cfg['enabled_facebook'] ?? 1),
         'tiktok'   => (bool)($cfg['enabled_tiktok']   ?? 1),
     ],
+    'urls' => [
+        'youtube'  => $cfg['url_youtube']  ?? 'rtmp://a.rtmp.youtube.com/live2',
+        'facebook' => $cfg['url_facebook'] ?? 'rtmp://127.0.0.1:19350/rtmp',
+        'tiktok'   => $cfg['url_tiktok']   ?? 'rtmp://127.0.0.1:19351/game',
+    ],
+    'stunnel' => [
+        'facebook' => $cfg['stunnel_facebook'] ?? 'live-api-s.facebook.com:443',
+        'tiktok'   => $cfg['stunnel_tiktok']   ?? 'push-rtmp-f5-tt01.tiktokcdn-us.com:443',
+    ],
     'restream'   => (bool)($cfg['restream']   ?? 1),
     'ingest_key' => $cfg['ingest_key'] ?? '',
 ]);

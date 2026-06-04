@@ -28,14 +28,25 @@ class UmbraDB {
         }
 
         $defaults = [
-            'key_youtube'      => '',
-            'key_facebook'     => '',
-            'key_tiktok'       => '',
-            'enabled_youtube'  => '1',
-            'enabled_facebook' => '1',
-            'enabled_tiktok'   => '1',
-            'restream'         => '1',
-            'ingest_key'       => bin2hex(random_bytes(16)),
+            // Stream keys
+            'key_youtube'           => '',
+            'key_facebook'          => '',
+            'key_tiktok'            => '',
+            // Enable flags
+            'enabled_youtube'       => '1',
+            'enabled_facebook'      => '1',
+            'enabled_tiktok'        => '1',
+            // Master toggle
+            'restream'              => '1',
+            // Ingest key
+            'ingest_key'            => bin2hex(random_bytes(16)),
+            // Push URLs (what nginx sends to)
+            'url_youtube'           => 'rtmp://a.rtmp.youtube.com/live2',
+            'url_facebook'          => 'rtmp://127.0.0.1:19350/rtmp',
+            'url_tiktok'            => 'rtmp://127.0.0.1:19351/game',
+            // Stunnel destinations (hostname:port for Facebook + TikTok)
+            'stunnel_facebook'      => 'live-api-s.facebook.com:443',
+            'stunnel_tiktok'        => 'push-rtmp-f5-tt01.tiktokcdn-us.com:443',
         ];
         foreach ($defaults as $k => $v) {
             $this->pdo->prepare(

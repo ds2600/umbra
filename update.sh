@@ -1,5 +1,5 @@
 #!/bin/bash
-# Umbra updater — pulls latest from git and applies it
+# Umbra updater
 # Usage: sudo bash update.sh
 set -e
 
@@ -9,7 +9,7 @@ WEB_ROOT="/var/www/umbra"
 echo "==> Pulling latest code"
 git -C "$REPO_DIR" pull
 
-echo "==> Syncing web files (data preserved)"
+echo "==> Syncing web files (database preserved)"
 rsync -a --delete "$REPO_DIR/web/" "$WEB_ROOT/web/"
 chown -R www-data:www-data "$WEB_ROOT"
 chmod -R 750 "$WEB_ROOT"
@@ -22,12 +22,8 @@ chown root:root /usr/local/bin/umbra-reload
 echo "==> Updating nginx site config"
 cp "$REPO_DIR/nginx/umbra.conf" /etc/nginx/sites-available/umbra
 
-echo "==> Updating stunnel config"
-cp "$REPO_DIR/nginx/stunnel.conf" /etc/stunnel/stunnel.conf
-systemctl restart stunnel4
-
 echo "==> Testing and reloading nginx"
 nginx -t && systemctl reload nginx
 
 echo ""
-echo "==> Umbra updated successfully."
+echo "==> Update complete."

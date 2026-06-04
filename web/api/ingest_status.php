@@ -12,7 +12,6 @@ if (!$doc) { echo json_encode(['connected' => false, 'bitrate_kbps' => 0]); exit
 
 $connected = false;
 $bitrateKbps = 0;
-
 foreach ($doc->server->application as $app) {
     if ((string)$app->name !== 'live') continue;
     foreach ($app->live->stream as $stream) {
@@ -22,5 +21,4 @@ foreach ($doc->server->application as $app) {
         }
     }
 }
-
 echo json_encode(['connected' => $connected, 'bitrate_kbps' => $bitrateKbps]);

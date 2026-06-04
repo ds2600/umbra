@@ -35,17 +35,21 @@ $authenticated = !empty($_SESSION['authenticated']);
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --black:#131112;--offblack:#231F20;--purple-deep:#220F28;--purple:#85598E;--gold:#C08E2D;
+  --black:#131112;--offblack:#231F20;--purple:#85598E;--gold:#C08E2D;
   --text:#e8e0ec;--text-dim:#9488a0;--text-faint:#5a5060;
   --border:rgba(133,89,142,0.18);--border-gold:rgba(192,142,45,0.25);
+  --border-red:rgba(192,57,43,0.3);
   --surface:rgba(34,15,40,0.55);--surface2:rgba(44,22,52,0.72);
-  --red:#c0392b;--yellow:#d4a017;--green:#27ae60;--radius:12px;--radius-sm:7px;
+  --red:#c0392b;--yellow:#d4a017;--green:#27ae60;
+  --radius:12px;--radius-sm:7px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--black);color:var(--text);font-family:'Inter',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(133,89,142,0.18) 0%,transparent 70%),radial-gradient(ellipse 40% 30% at 80% 20%,rgba(192,142,45,0.07) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 20% 80%,rgba(34,15,40,0.8) 0%,transparent 70%);pointer-events:none;z-index:0;}
 body::after{content:'';position:fixed;inset:0;background-image:radial-gradient(1px 1px at 15% 20%,rgba(255,255,255,0.35) 0%,transparent 100%),radial-gradient(1px 1px at 72% 8%,rgba(255,255,255,0.25) 0%,transparent 100%),radial-gradient(1px 1px at 40% 45%,rgba(255,255,255,0.2) 0%,transparent 100%),radial-gradient(1px 1px at 88% 55%,rgba(255,255,255,0.3) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 50% 15%,rgba(192,142,45,0.5) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 25% 60%,rgba(133,89,142,0.4) 0%,transparent 100%);pointer-events:none;z-index:0;}
 main{position:relative;z-index:1;}
+
+/* ── LOGIN ── */
 .login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem;}
 .login-card{width:100%;max-width:380px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3rem 2.5rem 2.5rem;backdrop-filter:blur(20px);box-shadow:0 0 60px rgba(133,89,142,0.12),0 0 120px rgba(0,0,0,0.6);animation:fadeUp .6s ease both;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
@@ -59,9 +63,11 @@ main{position:relative;z-index:1;}
 .field input:focus{border-color:rgba(133,89,142,0.6);}
 .btn-primary{width:100%;margin-top:.5rem;padding:.85rem;background:linear-gradient(135deg,rgba(133,89,142,0.7),rgba(192,142,45,0.35));border:1px solid var(--border-gold);border-radius:var(--radius-sm);color:var(--text);font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
 .btn-primary:hover{background:linear-gradient(135deg,rgba(133,89,142,0.9),rgba(192,142,45,0.5));box-shadow:0 0 20px rgba(192,142,45,0.2);}
-.login-error{margin-top:1rem;padding:.65rem 1rem;background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.3);border-radius:var(--radius-sm);font-size:.8rem;color:#e07070;text-align:center;}
+.login-error{margin-top:1rem;padding:.65rem 1rem;background:rgba(192,57,43,0.15);border:1px solid var(--border-red);border-radius:var(--radius-sm);font-size:.8rem;color:#e07070;text-align:center;}
+
+/* ── DASHBOARD ── */
 .dash{max-width:960px;margin:0 auto;padding:1.5rem 1.25rem 4rem;}
-.dash-header{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 0 1.5rem;border-bottom:1px solid var(--border);margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.dash-header{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 0 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;}
 .dash-brand{display:flex;align-items:center;gap:.9rem;}
 .dash-brand svg{width:36px;height:36px;filter:drop-shadow(0 0 8px rgba(192,142,45,0.4));}
 .dash-brand h1{font-family:'Cinzel',serif;font-size:1.3rem;letter-spacing:.2em;font-weight:600;}
@@ -76,17 +82,20 @@ main{position:relative;z-index:1;}
 .ingest-bitrate{color:var(--gold);font-size:.72rem;font-weight:500;}
 .btn-logout{background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-faint);font-family:'Inter',sans-serif;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;padding:.4rem .85rem;cursor:pointer;transition:all .2s;}
 .btn-logout:hover{border-color:var(--purple);color:var(--text);}
+
+/* ── SECTIONS ── */
 .section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.25rem;overflow:hidden;}
 .section-head{padding:.85rem 1.1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;}
 .section-title{font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--text-faint);}
+.section-body{padding:1.1rem;}
+
+/* ── FLOW DIAGRAM ── */
 @keyframes dash{to{stroke-dashoffset:-20;}}
 .stream-line{stroke-dasharray:5 5;}
 .stream-line.active{animation:dash .8s linear infinite;}
 .stream-line.inactive{opacity:.15;stroke-dasharray:none;}
-.restream-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;padding:.85rem 1.1rem;}
-.restream-label{display:flex;align-items:center;gap:.65rem;}
-.paused-badge{display:none;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .65rem;background:rgba(192,142,45,0.1);border:1px solid var(--border-gold);border-radius:99px;color:var(--gold);}
-.paused-badge.visible{display:inline-flex;}
+
+/* ── TOGGLES ── */
 .toggle-wrap{display:flex;align-items:center;gap:.65rem;font-size:.75rem;color:var(--text-dim);}
 .toggle{position:relative;width:42px;height:24px;display:inline-block;}
 .toggle input{opacity:0;width:0;height:0;}
@@ -94,13 +103,58 @@ main{position:relative;z-index:1;}
 .toggle-slider::before{content:'';position:absolute;width:16px;height:16px;top:3px;left:3px;background:var(--text-dim);border-radius:50%;transition:transform .2s,background .2s;}
 .toggle input:checked+.toggle-slider{background:rgba(133,89,142,0.45);border-color:rgba(133,89,142,0.5);}
 .toggle input:checked+.toggle-slider::before{transform:translateX(18px);background:var(--purple);}
-.ingest-key-section{padding:1.1rem;}
-.ingest-key-inner{background:rgba(0,0,0,0.22);border:1px solid var(--border-gold);border-radius:var(--radius-sm);padding:1rem 1.1rem;}
+
+/* ── RESTREAM ROW ── */
+.restream-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;padding:.85rem 1.1rem;}
+.restream-label{display:flex;align-items:center;gap:.65rem;}
+.paused-badge{display:none;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .65rem;background:rgba(192,142,45,0.1);border:1px solid var(--border-gold);border-radius:99px;color:var(--gold);}
+.paused-badge.visible{display:inline-flex;}
+
+/* ── PLATFORM CARDS ── */
+.platforms-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.1rem;}
+@media(max-width:640px){.platforms-grid{grid-template-columns:1fr;}}
+.platform-card{background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;transition:opacity .3s;}
+.platform-card.disabled{opacity:.45;}
+.platform-card-header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1rem .7rem;}
+.platform-name{display:flex;align-items:center;gap:.55rem;font-size:.82rem;font-weight:500;}
+.platform-icon{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.platform-icon.yt{background:rgba(255,0,0,0.12);color:rgba(255,100,100,0.9);}
+.platform-icon.fb{background:rgba(66,103,178,0.15);color:rgba(100,140,230,0.9);}
+.platform-icon.tt{background:rgba(255,255,255,0.07);color:rgba(200,200,200,0.8);}
+.platform-key-wrap{padding:0 1rem .85rem;}
+.plat-key-input{width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.5rem .7rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.77rem;outline:none;transition:border-color .2s;}
+.plat-key-input:focus{border-color:rgba(133,89,142,0.5);}
+.plat-key-input::placeholder{color:var(--text-faint);}
+
+/* ── ADVANCED TOGGLE ── */
+.adv-toggle{display:flex;align-items:center;gap:.4rem;padding:.55rem 1rem;border-top:1px solid rgba(133,89,142,0.1);background:rgba(0,0,0,0.15);cursor:pointer;user-select:none;transition:background .2s;}
+.adv-toggle:hover{background:rgba(0,0,0,0.25);}
+.adv-toggle span{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);}
+.adv-chevron{width:12px;height:12px;color:var(--text-faint);transition:transform .25s;flex-shrink:0;}
+.adv-chevron.open{transform:rotate(180deg);}
+.adv-body{overflow:hidden;max-height:0;transition:max-height .3s ease;}
+.adv-body.open{max-height:300px;}
+.adv-inner{padding:.75rem 1rem 1rem;border-top:1px solid rgba(133,89,142,0.08);}
+.adv-field{margin-bottom:.65rem;}
+.adv-field:last-child{margin-bottom:0;}
+.adv-label{display:block;font-size:.67rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:.3rem;}
+.adv-input{width:100%;background:rgba(0,0,0,0.35);border:1px solid rgba(133,89,142,0.12);border-radius:var(--radius-sm);padding:.45rem .65rem;color:var(--text-dim);font-family:'Inter',sans-serif;font-size:.73rem;outline:none;transition:border-color .2s,color .2s;}
+.adv-input:focus{border-color:rgba(192,142,45,0.4);color:var(--text);}
+.adv-hint{font-size:.65rem;color:var(--text-faint);margin-top:.2rem;line-height:1.4;}
+
+/* ── INGEST KEY SECTION ── */
+.ingest-section-head{padding:.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;gap:.75rem;flex-wrap:wrap;}
+.ingest-section-head:hover{background:rgba(0,0,0,0.1);}
+.ingest-chevron{width:14px;height:14px;color:var(--text-faint);transition:transform .25s;flex-shrink:0;}
+.ingest-chevron.open{transform:rotate(180deg);}
+.ingest-body{overflow:hidden;max-height:0;transition:max-height .35s ease;border-top:0px solid var(--border);}
+.ingest-body.open{max-height:300px;border-top:1px solid var(--border);}
+.ingest-key-inner{background:rgba(0,0,0,0.15);padding:1rem 1.1rem;}
 .ingest-key-meta{margin-bottom:.85rem;}
 .ingest-key-meta h3{font-size:.8rem;font-weight:500;color:var(--text);margin-bottom:.25rem;}
 .ingest-key-meta p{font-size:.73rem;color:var(--text-faint);line-height:1.5;}
 .key-input-row{display:flex;gap:.55rem;align-items:stretch;flex-wrap:wrap;}
-.key-input-row input{flex:1;min-width:160px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.6rem .85rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.82rem;outline:none;transition:border-color .2s;}
+.key-input-row input{flex:1;min-width:140px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.6rem .85rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.82rem;outline:none;transition:border-color .2s;}
 .key-input-row input:focus{border-color:rgba(192,142,45,0.5);}
 .btn-icon{padding:.6rem .75rem;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-dim);cursor:pointer;font-size:.75rem;font-family:'Inter',sans-serif;transition:all .2s;display:flex;align-items:center;gap:.35rem;white-space:nowrap;}
 .btn-icon:hover{border-color:var(--purple);color:var(--text);}
@@ -108,29 +162,18 @@ main{position:relative;z-index:1;}
 .btn-regen:hover{background:rgba(192,142,45,0.18);}
 .copy-toast{font-size:.7rem;color:var(--green);opacity:0;transition:opacity .3s;align-self:center;}
 .copy-toast.show{opacity:1;}
-.rtmp-hint{margin-top:.75rem;padding:.65rem .85rem;background:rgba(133,89,142,0.07);border:1px solid rgba(133,89,142,0.15);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
-.rtmp-hint-label{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
-.rtmp-hint-url{font-size:.78rem;color:var(--text-dim);}
-.rtmp-hint-url strong{font-weight:500;}
-.platforms-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.1rem;}
-@media(max-width:600px){.platforms-grid{grid-template-columns:1fr;}}
-.platform-card{background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;transition:opacity .3s;}
-.platform-card.disabled{opacity:.45;}
-.platform-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;}
-.platform-name{display:flex;align-items:center;gap:.55rem;font-size:.82rem;font-weight:500;}
-.platform-icon{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;}
-.platform-icon.yt{background:rgba(255,0,0,0.12);color:rgba(255,100,100,0.9);}
-.platform-icon.fb{background:rgba(66,103,178,0.15);color:rgba(100,140,230,0.9);}
-.platform-icon.tt{background:rgba(255,255,255,0.07);color:rgba(200,200,200,0.8);}
-.plat-key-input{width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.5rem .7rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.77rem;outline:none;transition:border-color .2s;}
-.plat-key-input:focus{border-color:rgba(133,89,142,0.5);}
-.plat-key-input::placeholder{color:var(--text-faint);}
+.rtmp-hint{margin-top:.75rem;padding:.6rem .85rem;background:rgba(133,89,142,0.06);border:1px solid rgba(133,89,142,0.12);border-radius:var(--radius-sm);font-size:.75rem;color:var(--text-dim);}
+.rtmp-hint strong{color:var(--purple);font-weight:500;}
+
+/* ── ACTION BAR ── */
 .action-bar{display:flex;align-items:center;justify-content:flex-end;gap:1rem;margin-bottom:1.25rem;padding:0 .25rem;flex-wrap:wrap;}
 .save-status{font-size:.75rem;color:var(--text-faint);transition:color .3s;}
 .save-status.ok{color:var(--green);}
 .save-status.err{color:var(--red);}
 .btn-apply{padding:.65rem 1.6rem;background:linear-gradient(135deg,rgba(133,89,142,0.6),rgba(192,142,45,0.3));border:1px solid var(--border-gold);border-radius:var(--radius-sm);color:var(--text);font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
 .btn-apply:hover{box-shadow:0 0 16px rgba(192,142,45,0.22);}
+
+/* ── STATS ── */
 .stats-toggle-head{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.1rem;cursor:pointer;user-select:none;}
 .stats-chevron{width:16px;height:16px;color:var(--text-faint);transition:transform .3s;}
 .stats-chevron.open{transform:rotate(180deg);}
@@ -145,6 +188,8 @@ main{position:relative;z-index:1;}
 .stat-unit{font-size:.68rem;color:var(--text-dim);margin-left:.2rem;}
 .stat-bar{height:2px;background:rgba(255,255,255,0.06);border-radius:1px;margin-top:.55rem;overflow:hidden;}
 .stat-bar-fill{height:100%;border-radius:1px;background:linear-gradient(90deg,var(--purple),var(--gold));transition:width .8s ease;}
+
+/* ── MODAL ── */
 .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;padding:1rem;}
 .modal-backdrop.open{display:flex;}
 .modal{background:var(--offblack);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;max-width:400px;width:100%;box-shadow:0 0 60px rgba(0,0,0,0.8);animation:fadeUp .25s ease both;}
@@ -192,8 +237,11 @@ main{position:relative;z-index:1;}
     </form>
   </div>
 </div>
+
 <?php else: ?>
 <div class="dash">
+
+  <!-- Header -->
   <div class="dash-header">
     <div class="dash-brand">
       <svg viewBox="0 0 72 72" fill="none">
@@ -222,6 +270,7 @@ main{position:relative;z-index:1;}
     </div>
   </div>
 
+  <!-- Signal path -->
   <div class="section">
     <div class="section-head"><span class="section-title">Signal path</span></div>
     <svg viewBox="0 0 700 170" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">
@@ -256,38 +305,137 @@ main{position:relative;z-index:1;}
       <path id="line-yt" class="stream-line inactive" d="M350 75L430 45" stroke="#ff4444" stroke-width="1.5" marker-end="url(#arr)" fill="none"/>
       <path id="line-fb" class="stream-line inactive" d="M350 86L430 86" stroke="#4a7fd4" stroke-width="1.5" marker-end="url(#arr)" fill="none"/>
       <path id="line-tt" class="stream-line inactive" d="M350 97L430 127" stroke="#aaaaaa" stroke-width="1.5" marker-end="url(#arr)" fill="none"/>
-      <g id="node-yt">
-        <rect x="432" y="22" width="116" height="46" rx="8" fill="rgba(34,15,40,0.85)" stroke="rgba(255,68,68,0.3)" stroke-width="1"/>
-        <text x="450" y="42" font-family="Inter,sans-serif" font-size="10" font-weight="500" fill="rgba(255,100,100,0.85)">▶ YouTube</text>
-        <circle id="dot-yt" cx="537" cy="35" r="4" fill="rgba(255,255,255,0.1)"/>
-        <text x="490" y="58" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" fill="rgba(200,185,215,0.3)" letter-spacing=".06em">LIVE</text>
-      </g>
-      <g id="node-fb">
-        <rect x="432" y="63" width="116" height="46" rx="8" fill="rgba(34,15,40,0.85)" stroke="rgba(74,127,212,0.3)" stroke-width="1"/>
-        <text x="450" y="83" font-family="Inter,sans-serif" font-size="10" font-weight="500" fill="rgba(100,140,230,0.85)">f  Facebook</text>
-        <circle id="dot-fb" cx="537" cy="76" r="4" fill="rgba(255,255,255,0.1)"/>
-        <text x="490" y="99" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" fill="rgba(200,185,215,0.3)" letter-spacing=".06em">LIVE</text>
-      </g>
-      <g id="node-tt">
-        <rect x="432" y="104" width="116" height="46" rx="8" fill="rgba(34,15,40,0.85)" stroke="rgba(180,180,180,0.2)" stroke-width="1"/>
-        <text x="450" y="124" font-family="Inter,sans-serif" font-size="10" font-weight="500" fill="rgba(200,200,200,0.8)">♪ TikTok</text>
-        <circle id="dot-tt" cx="537" cy="117" r="4" fill="rgba(255,255,255,0.1)"/>
-        <text x="490" y="140" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" fill="rgba(200,185,215,0.3)" letter-spacing=".06em">LIVE</text>
-      </g>
+      <g><rect x="432" y="22" width="116" height="46" rx="8" fill="rgba(34,15,40,0.85)" stroke="rgba(255,68,68,0.3)" stroke-width="1"/><text x="450" y="42" font-family="Inter,sans-serif" font-size="10" font-weight="500" fill="rgba(255,100,100,0.85)">▶ YouTube</text><circle id="dot-yt" cx="537" cy="35" r="4" fill="rgba(255,255,255,0.1)"/><text x="490" y="58" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" fill="rgba(200,185,215,0.3)" letter-spacing=".06em">LIVE</text></g>
+      <g><rect x="432" y="63" width="116" height="46" rx="8" fill="rgba(34,15,40,0.85)" stroke="rgba(74,127,212,0.3)" stroke-width="1"/><text x="450" y="83" font-family="Inter,sans-serif" font-size="10" font-weight="500" fill="rgba(100,140,230,0.85)">f  Facebook</text><circle id="dot-fb" cx="537" cy="76" r="4" fill="rgba(255,255,255,0.1)"/><text x="490" y="99" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" fill="rgba(200,185,215,0.3)" letter-spacing=".06em">LIVE</text></g>
+      <g><rect x="432" y="104" width="116" height="46" rx="8" fill="rgba(34,15,40,0.85)" stroke="rgba(180,180,180,0.2)" stroke-width="1"/><text x="450" y="124" font-family="Inter,sans-serif" font-size="10" font-weight="500" fill="rgba(200,200,200,0.8)">♪ TikTok</text><circle id="dot-tt" cx="537" cy="117" r="4" fill="rgba(255,255,255,0.1)"/><text x="490" y="140" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" fill="rgba(200,185,215,0.3)" letter-spacing=".06em">LIVE</text></g>
       <circle cx="290" cy="86" r="3" fill="#C08E2D" opacity=".6"/>
     </svg>
   </div>
 
+  <!-- Restream master toggle -->
   <div class="section">
-    <div class="section-head">
-      <span class="section-title">Ingest security</span>
-      <span style="font-size:.7rem;color:var(--text-faint);letter-spacing:.06em;">Required to connect your camera</span>
+    <div class="restream-row">
+      <div class="restream-label">
+        <span class="section-title">Restreaming</span>
+        <span class="paused-badge" id="paused-badge">⏸ Camera only</span>
+      </div>
+      <div class="toggle-wrap">
+        <span id="restream-toggle-label">Enabled</span>
+        <label class="toggle"><input type="checkbox" id="restream-toggle" checked><span class="toggle-slider"></span></label>
+      </div>
     </div>
-    <div class="ingest-key-section">
+  </div>
+
+  <!-- Platforms -->
+  <div class="section">
+    <div class="section-head"><span class="section-title">Platforms</span></div>
+    <div class="platforms-grid">
+
+      <!-- YouTube -->
+      <div class="platform-card" id="card-yt">
+        <div class="platform-card-header">
+          <div class="platform-name"><div class="platform-icon yt">▶</div>YouTube</div>
+          <label class="toggle"><input type="checkbox" id="toggle-yt" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="platform-key-wrap">
+          <input type="text" class="plat-key-input" id="key-yt" placeholder="Stream key…" spellcheck="false">
+        </div>
+        <div class="adv-toggle" id="adv-toggle-yt">
+          <svg class="adv-chevron" id="adv-chev-yt" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>
+          <span>Advanced</span>
+        </div>
+        <div class="adv-body" id="adv-body-yt">
+          <div class="adv-inner">
+            <div class="adv-field">
+              <label class="adv-label">Push URL</label>
+              <input type="text" class="adv-input" id="url-yt" spellcheck="false">
+              <div class="adv-hint">Plain RTMP — no stunnel needed for YouTube</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Facebook -->
+      <div class="platform-card" id="card-fb">
+        <div class="platform-card-header">
+          <div class="platform-name"><div class="platform-icon fb">f</div>Facebook</div>
+          <label class="toggle"><input type="checkbox" id="toggle-fb" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="platform-key-wrap">
+          <input type="text" class="plat-key-input" id="key-fb" placeholder="Stream key…" spellcheck="false">
+        </div>
+        <div class="adv-toggle" id="adv-toggle-fb">
+          <svg class="adv-chevron" id="adv-chev-fb" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>
+          <span>Advanced</span>
+        </div>
+        <div class="adv-body" id="adv-body-fb">
+          <div class="adv-inner">
+            <div class="adv-field">
+              <label class="adv-label">Push URL (local stunnel)</label>
+              <input type="text" class="adv-input" id="url-fb" spellcheck="false">
+              <div class="adv-hint">nginx pushes to this local address</div>
+            </div>
+            <div class="adv-field">
+              <label class="adv-label">Stunnel destination</label>
+              <input type="text" class="adv-input" id="stunnel-fb" spellcheck="false" placeholder="hostname:443">
+              <div class="adv-hint">Real Facebook RTMPS endpoint (hostname:port)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TikTok -->
+      <div class="platform-card" id="card-tt">
+        <div class="platform-card-header">
+          <div class="platform-name"><div class="platform-icon tt">♪</div>TikTok</div>
+          <label class="toggle"><input type="checkbox" id="toggle-tt" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="platform-key-wrap">
+          <input type="text" class="plat-key-input" id="key-tt" placeholder="Stream key…" spellcheck="false">
+        </div>
+        <div class="adv-toggle" id="adv-toggle-tt">
+          <svg class="adv-chevron" id="adv-chev-tt" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>
+          <span>Advanced</span>
+        </div>
+        <div class="adv-body" id="adv-body-tt">
+          <div class="adv-inner">
+            <div class="adv-field">
+              <label class="adv-label">Push URL (local stunnel)</label>
+              <input type="text" class="adv-input" id="url-tt" spellcheck="false">
+              <div class="adv-hint">nginx pushes to this local address</div>
+            </div>
+            <div class="adv-field">
+              <label class="adv-label">Stunnel destination</label>
+              <input type="text" class="adv-input" id="stunnel-tt" spellcheck="false" placeholder="hostname:443">
+              <div class="adv-hint">Real TikTok RTMPS endpoint (hostname:port) — update here if TikTok changes it</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Apply -->
+  <div class="action-bar">
+    <span class="save-status" id="save-status"></span>
+    <button class="btn-apply" id="btn-apply">Apply Changes</button>
+  </div>
+
+  <!-- Ingest security (collapsed by default) -->
+  <div class="section">
+    <div class="ingest-section-head" id="ingest-section-head">
+      <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+        <span class="section-title">Ingest security</span>
+        <span style="font-size:.7rem;color:var(--text-faint);">Camera authentication key</span>
+      </div>
+      <svg class="ingest-chevron" id="ingest-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>
+    </div>
+    <div class="ingest-body" id="ingest-body">
       <div class="ingest-key-inner">
         <div class="ingest-key-meta">
           <h3>Camera stream key</h3>
-          <p>Enter this as the <strong style="color:var(--text-dim);font-weight:500">stream key</strong> in Insta360 or Larix. nginx will reject any connection that doesn't match.</p>
+          <p>Set this as the stream key in Insta360 or Larix. nginx rejects any connection that doesn't match. Rotate with Regenerate, then Apply.</p>
         </div>
         <div class="key-input-row">
           <input type="text" id="ingest-key-input" placeholder="Loading…" autocomplete="off" spellcheck="false">
@@ -299,58 +447,13 @@ main{position:relative;z-index:1;}
           <span class="copy-toast" id="copy-toast">Copied!</span>
         </div>
         <div class="rtmp-hint">
-          <span class="rtmp-hint-label">RTMP URL</span>
-          <span class="rtmp-hint-url">rtmp://<strong id="hint-server">your-server</strong>/live &nbsp;·&nbsp; key: <strong id="hint-key" style="color:var(--purple)">…</strong></span>
+          RTMP URL: rtmp://<strong id="hint-server">your-server</strong>/live &nbsp;·&nbsp; Key: <strong id="hint-key">…</strong>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="section">
-    <div class="restream-row">
-      <div class="restream-label">
-        <span class="section-title">Restreaming</span>
-        <span class="paused-badge" id="paused-badge">⏸ Camera only — not pushing to platforms</span>
-      </div>
-      <div class="toggle-wrap">
-        <span id="restream-toggle-label">Enabled</span>
-        <label class="toggle"><input type="checkbox" id="restream-toggle" checked><span class="toggle-slider"></span></label>
-      </div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-head"><span class="section-title">Platforms</span></div>
-    <div class="platforms-grid">
-      <div class="platform-card" id="card-yt">
-        <div class="platform-card-header">
-          <div class="platform-name"><div class="platform-icon yt">▶</div>YouTube</div>
-          <label class="toggle"><input type="checkbox" id="toggle-yt" checked><span class="toggle-slider"></span></label>
-        </div>
-        <input type="text" class="plat-key-input" id="key-yt" placeholder="Stream key…" spellcheck="false">
-      </div>
-      <div class="platform-card" id="card-fb">
-        <div class="platform-card-header">
-          <div class="platform-name"><div class="platform-icon fb">f</div>Facebook</div>
-          <label class="toggle"><input type="checkbox" id="toggle-fb" checked><span class="toggle-slider"></span></label>
-        </div>
-        <input type="text" class="plat-key-input" id="key-fb" placeholder="Stream key…" spellcheck="false">
-      </div>
-      <div class="platform-card" id="card-tt">
-        <div class="platform-card-header">
-          <div class="platform-name"><div class="platform-icon tt">♪</div>TikTok</div>
-          <label class="toggle"><input type="checkbox" id="toggle-tt" checked><span class="toggle-slider"></span></label>
-        </div>
-        <input type="text" class="plat-key-input" id="key-tt" placeholder="Stream key…" spellcheck="false">
-      </div>
-    </div>
-  </div>
-
-  <div class="action-bar">
-    <span class="save-status" id="save-status"></span>
-    <button class="btn-apply" id="btn-apply">Apply Changes</button>
-  </div>
-
+  <!-- Stats -->
   <div class="section">
     <div class="stats-toggle-head" id="stats-header">
       <span class="section-title">System</span>
@@ -363,12 +466,14 @@ main{position:relative;z-index:1;}
       <div class="stat-cell"><div class="stat-label">Net Out</div><div class="stat-value" id="stat-netout">—<span class="stat-unit">Mbps</span></div><div class="stat-bar"><div class="stat-bar-fill" id="bar-netout" style="width:0%"></div></div></div>
     </div>
   </div>
+
 </div>
 
+<!-- Modal -->
 <div class="modal-backdrop" id="modal">
   <div class="modal">
     <h3>Apply Changes</h3>
-    <p>This will reload nginx and the stream relay. Active platform pushes will briefly reconnect. Your camera ingest will not be interrupted.</p>
+    <p>This will reload nginx and stunnel. Active platform pushes will briefly reconnect. Your camera ingest will not be interrupted.</p>
     <div class="modal-btns">
       <button class="btn-cancel" id="modal-cancel">Cancel</button>
       <button class="btn-confirm" id="modal-confirm">Apply</button>
@@ -377,109 +482,159 @@ main{position:relative;z-index:1;}
 </div>
 
 <script>
-let restreamEnabled='', statsCollapsed=window.innerWidth<=600, currentIngestState='none';
-if(statsCollapsed){document.getElementById('stats-body').classList.add('collapsed');document.getElementById('stats-chevron').classList.remove('open');}
-document.getElementById('hint-server').textContent=window.location.hostname;
+let restreamEnabled = true;
+let statsCollapsed  = window.innerWidth <= 600;
+let currentIngestState = 'none';
 
-async function loadConfig(){
-  const d=await(await fetch('api/get_config.php')).json();
-  document.getElementById('key-yt').value=d.keys.youtube||'';
-  document.getElementById('key-fb').value=d.keys.facebook||'';
-  document.getElementById('key-tt').value=d.keys.tiktok||'';
-  document.getElementById('toggle-yt').checked=!!d.enabled.youtube;
-  document.getElementById('toggle-fb').checked=!!d.enabled.facebook;
-  document.getElementById('toggle-tt').checked=!!d.enabled.tiktok;
-  restreamEnabled=!!d.restream;
-  document.getElementById('restream-toggle').checked=restreamEnabled;
-  const k=d.ingest_key||'';
-  document.getElementById('ingest-key-input').value=k;
-  document.getElementById('hint-key').textContent=k?k.slice(0,8)+'…':'(none)';
-  updatePlatformCards();updateRestreamState();
+if (statsCollapsed) { document.getElementById('stats-body').classList.add('collapsed'); document.getElementById('stats-chevron').classList.remove('open'); }
+document.getElementById('hint-server').textContent = window.location.hostname;
+
+// ── Advanced toggles ───────────────────────────────────────
+['yt','fb','tt'].forEach(p => {
+  document.getElementById('adv-toggle-'+p).addEventListener('click', () => {
+    const body = document.getElementById('adv-body-'+p);
+    const chev = document.getElementById('adv-chev-'+p);
+    const open = body.classList.toggle('open');
+    chev.classList.toggle('open', open);
+  });
+});
+
+// ── Ingest section toggle ──────────────────────────────────
+document.getElementById('ingest-section-head').addEventListener('click', () => {
+  const body = document.getElementById('ingest-body');
+  const chev = document.getElementById('ingest-chevron');
+  const open = body.classList.toggle('open');
+  chev.classList.toggle('open', open);
+});
+
+// ── Load config ────────────────────────────────────────────
+async function loadConfig() {
+  const d = await (await fetch('api/get_config.php')).json();
+  document.getElementById('key-yt').value     = d.keys.youtube  || '';
+  document.getElementById('key-fb').value     = d.keys.facebook || '';
+  document.getElementById('key-tt').value     = d.keys.tiktok   || '';
+  document.getElementById('toggle-yt').checked = !!d.enabled.youtube;
+  document.getElementById('toggle-fb').checked = !!d.enabled.facebook;
+  document.getElementById('toggle-tt').checked = !!d.enabled.tiktok;
+  document.getElementById('url-yt').value      = d.urls.youtube  || '';
+  document.getElementById('url-fb').value      = d.urls.facebook || '';
+  document.getElementById('url-tt').value      = d.urls.tiktok   || '';
+  document.getElementById('stunnel-fb').value  = d.stunnel.facebook || '';
+  document.getElementById('stunnel-tt').value  = d.stunnel.tiktok   || '';
+  restreamEnabled = !!d.restream;
+  document.getElementById('restream-toggle').checked = restreamEnabled;
+  const k = d.ingest_key || '';
+  document.getElementById('ingest-key-input').value = k;
+  document.getElementById('hint-key').textContent   = k ? k.slice(0,8)+'…' : '(none)';
+  updatePlatformCards(); updateRestreamState();
 }
 loadConfig();
 
-document.getElementById('btn-copy-ingest').addEventListener('click',async()=>{
-  const v=document.getElementById('ingest-key-input').value;if(!v)return;
-  try{await navigator.clipboard.writeText(v);const t=document.getElementById('copy-toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}catch(e){}
+// ── Ingest key controls ────────────────────────────────────
+document.getElementById('btn-copy-ingest').addEventListener('click', async () => {
+  const v = document.getElementById('ingest-key-input').value; if (!v) return;
+  try { await navigator.clipboard.writeText(v); const t=document.getElementById('copy-toast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); } catch(e) {}
 });
-document.getElementById('ingest-key-input').addEventListener('input',function(){document.getElementById('hint-key').textContent=this.value?this.value.slice(0,8)+'…':'(none)';});
-document.getElementById('btn-regen-key').addEventListener('click',()=>{
-  const a=new Uint8Array(16);crypto.getRandomValues(a);
-  const k=Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('');
-  document.getElementById('ingest-key-input').value=k;document.getElementById('hint-key').textContent=k.slice(0,8)+'…';
+document.getElementById('ingest-key-input').addEventListener('input', function() {
+  document.getElementById('hint-key').textContent = this.value ? this.value.slice(0,8)+'…' : '(none)';
+});
+document.getElementById('btn-regen-key').addEventListener('click', () => {
+  const a = new Uint8Array(16); crypto.getRandomValues(a);
+  const k = Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('');
+  document.getElementById('ingest-key-input').value = k;
+  document.getElementById('hint-key').textContent   = k.slice(0,8)+'…';
 });
 
-function updatePlatformCards(){['yt','fb','tt'].forEach(p=>document.getElementById('card-'+p).classList.toggle('disabled',!document.getElementById('toggle-'+p).checked));updateDiagram();}
-['yt','fb','tt'].forEach(p=>document.getElementById('toggle-'+p).addEventListener('change',updatePlatformCards));
+// ── Platform cards ─────────────────────────────────────────
+function updatePlatformCards() {
+  ['yt','fb','tt'].forEach(p => document.getElementById('card-'+p).classList.toggle('disabled', !document.getElementById('toggle-'+p).checked));
+  updateDiagram();
+}
+['yt','fb','tt'].forEach(p => document.getElementById('toggle-'+p).addEventListener('change', updatePlatformCards));
 
-document.getElementById('restream-toggle').addEventListener('change',function(){restreamEnabled=this.checked;updateRestreamState();});
-function updateRestreamState(){
-  document.getElementById('restream-toggle-label').textContent=restreamEnabled?'Enabled':'Disabled';
-  document.getElementById('paused-badge').classList.toggle('visible',!restreamEnabled);
-  document.getElementById('pause-overlay').style.display=restreamEnabled?'none':'block';
+// ── Restream ───────────────────────────────────────────────
+document.getElementById('restream-toggle').addEventListener('change', function() { restreamEnabled=this.checked; updateRestreamState(); });
+function updateRestreamState() {
+  document.getElementById('restream-toggle-label').textContent = restreamEnabled ? 'Enabled' : 'Disabled';
+  document.getElementById('paused-badge').classList.toggle('visible', !restreamEnabled);
+  document.getElementById('pause-overlay').style.display = restreamEnabled ? 'none' : 'block';
   updateDiagram();
 }
 
-function updateDiagram(){
-  const a=currentIngestState==='green'||currentIngestState==='yellow';
-  setLine('line-ingest',a);
-  const c={yt:'rgba(255,80,80,0.9)',fb:'rgba(100,150,240,0.9)',tt:'rgba(200,200,200,0.85)'};
-  ['yt','fb','tt'].forEach(p=>{
-    const on=a&&restreamEnabled&&document.getElementById('toggle-'+p).checked;
-    setLine('line-'+p,on);
-    const d=document.getElementById('dot-'+p);
-    d.setAttribute('fill',on?c[p]:'rgba(255,255,255,0.08)');d.setAttribute('opacity',on?'1':'0.3');
+// ── Diagram ────────────────────────────────────────────────
+function updateDiagram() {
+  const a = currentIngestState==='green'||currentIngestState==='yellow';
+  setLine('line-ingest', a);
+  const c = {yt:'rgba(255,80,80,0.9)',fb:'rgba(100,150,240,0.9)',tt:'rgba(200,200,200,0.85)'};
+  ['yt','fb','tt'].forEach(p => {
+    const on = a && restreamEnabled && document.getElementById('toggle-'+p).checked;
+    setLine('line-'+p, on);
+    const d = document.getElementById('dot-'+p);
+    d.setAttribute('fill', on ? c[p] : 'rgba(255,255,255,0.08)');
+    d.setAttribute('opacity', on ? '1' : '0.3');
   });
 }
-function setLine(id,active){const el=document.getElementById(id);if(!el)return;el.classList.toggle('active',active);el.classList.toggle('inactive',!active);}
+function setLine(id, active) { const el=document.getElementById(id); if(!el)return; el.classList.toggle('active',active); el.classList.toggle('inactive',!active); }
 
-async function pollIngest(){
-  try{
-    const d=await(await fetch('api/ingest_status.php?_='+Date.now())).json();
-    const dot=document.getElementById('ingest-dot'),lbl=document.getElementById('ingest-label'),br=document.getElementById('ingest-bitrate'),dd=document.getElementById('diag-ingest-dot');
+// ── Ingest poll ────────────────────────────────────────────
+async function pollIngest() {
+  try {
+    const d = await (await fetch('api/ingest_status.php?_='+Date.now())).json();
+    const dot=document.getElementById('ingest-dot'), lbl=document.getElementById('ingest-label'), br=document.getElementById('ingest-bitrate'), dd=document.getElementById('diag-ingest-dot');
     dot.className='ingest-dot';
-    if(d.connected){
+    if (d.connected) {
       const mbps=(d.bitrate_kbps/1000).toFixed(1);
-      if(d.bitrate_kbps<500){currentIngestState='yellow';dot.classList.add('yellow');lbl.textContent='Unstable';dd.setAttribute('stroke','rgba(212,160,23,0.3)');}
-      else{currentIngestState='green';dot.classList.add('green');lbl.textContent='Connected';dd.setAttribute('stroke','rgba(39,174,96,0.3)');}
+      if (d.bitrate_kbps<500) { currentIngestState='yellow'; dot.classList.add('yellow'); lbl.textContent='Unstable'; dd.setAttribute('stroke','rgba(212,160,23,0.3)'); }
+      else { currentIngestState='green'; dot.classList.add('green'); lbl.textContent='Connected'; dd.setAttribute('stroke','rgba(39,174,96,0.3)'); }
       br.textContent=mbps+' Mbps';
-    }else{currentIngestState='red';dot.classList.add('red');lbl.textContent='No signal';br.textContent='';dd.setAttribute('stroke','rgba(133,89,142,0.12)');}
+    } else { currentIngestState='red'; dot.classList.add('red'); lbl.textContent='No signal'; br.textContent=''; dd.setAttribute('stroke','rgba(133,89,142,0.12)'); }
     updateDiagram();
-  }catch(e){currentIngestState='none';}
+  } catch(e) { currentIngestState='none'; }
 }
-pollIngest();setInterval(pollIngest,5000);
+pollIngest(); setInterval(pollIngest, 5000);
 
-async function pollStats(){
-  try{
-    const d=await(await fetch('api/stats.php?_='+Date.now())).json();
-    sv('stat-cpu',Math.round(d.cpu),'%');sb('bar-cpu',d.cpu);
-    sv('stat-mem',Math.round(d.mem_mb),'MB');sb('bar-mem',d.mem_pct);
-    sv('stat-netin',(d.net_in_mbps||0).toFixed(1),'Mbps');sb('bar-netin',Math.min((d.net_in_mbps||0)*5,100));
-    sv('stat-netout',(d.net_out_mbps||0).toFixed(1),'Mbps');sb('bar-netout',Math.min((d.net_out_mbps||0)*5,100));
-  }catch(e){}
+// ── Stats poll ─────────────────────────────────────────────
+async function pollStats() {
+  try {
+    const d = await (await fetch('api/stats.php?_='+Date.now())).json();
+    sv('stat-cpu',Math.round(d.cpu),'%'); sb('bar-cpu',d.cpu);
+    sv('stat-mem',Math.round(d.mem_mb),'MB'); sb('bar-mem',d.mem_pct);
+    sv('stat-netin',(d.net_in_mbps||0).toFixed(1),'Mbps'); sb('bar-netin',Math.min((d.net_in_mbps||0)*5,100));
+    sv('stat-netout',(d.net_out_mbps||0).toFixed(1),'Mbps'); sb('bar-netout',Math.min((d.net_out_mbps||0)*5,100));
+  } catch(e) {}
 }
 function sv(id,v,u){const el=document.getElementById(id);if(el)el.innerHTML=v+'<span class="stat-unit">'+u+'</span>';}
 function sb(id,p){const el=document.getElementById(id);if(el)el.style.width=Math.min(Math.max(p,0),100)+'%';}
-pollStats();setInterval(pollStats,5000);
+pollStats(); setInterval(pollStats, 5000);
 
-document.getElementById('stats-header').addEventListener('click',()=>{statsCollapsed=!statsCollapsed;document.getElementById('stats-body').classList.toggle('collapsed',statsCollapsed);document.getElementById('stats-chevron').classList.toggle('open',!statsCollapsed);});
-document.getElementById('btn-apply').addEventListener('click',()=>document.getElementById('modal').classList.add('open'));
-document.getElementById('modal-cancel').addEventListener('click',()=>document.getElementById('modal').classList.remove('open'));
-document.getElementById('modal-confirm').addEventListener('click',async()=>{
+// ── Stats collapse ─────────────────────────────────────────
+document.getElementById('stats-header').addEventListener('click', () => {
+  statsCollapsed=!statsCollapsed;
+  document.getElementById('stats-body').classList.toggle('collapsed',statsCollapsed);
+  document.getElementById('stats-chevron').classList.toggle('open',!statsCollapsed);
+});
+
+// ── Apply ──────────────────────────────────────────────────
+document.getElementById('btn-apply').addEventListener('click', () => document.getElementById('modal').classList.add('open'));
+document.getElementById('modal-cancel').addEventListener('click', () => document.getElementById('modal').classList.remove('open'));
+document.getElementById('modal-confirm').addEventListener('click', async () => {
   document.getElementById('modal').classList.remove('open');
-  const st=document.getElementById('save-status');st.textContent='Applying…';st.className='save-status';
-  try{
-    const r=await fetch('api/apply.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      restream:restreamEnabled,
-      ingest_key:document.getElementById('ingest-key-input').value.trim(),
-      keys:{youtube:document.getElementById('key-yt').value.trim(),facebook:document.getElementById('key-fb').value.trim(),tiktok:document.getElementById('key-tt').value.trim()},
-      enabled:{youtube:document.getElementById('toggle-yt').checked,facebook:document.getElementById('toggle-fb').checked,tiktok:document.getElementById('toggle-tt').checked}
+  const st = document.getElementById('save-status');
+  st.textContent='Applying…'; st.className='save-status';
+  try {
+    const r = await fetch('api/apply.php', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+      restream:   restreamEnabled,
+      ingest_key: document.getElementById('ingest-key-input').value.trim(),
+      keys:    { youtube:document.getElementById('key-yt').value.trim(), facebook:document.getElementById('key-fb').value.trim(), tiktok:document.getElementById('key-tt').value.trim() },
+      enabled: { youtube:document.getElementById('toggle-yt').checked, facebook:document.getElementById('toggle-fb').checked, tiktok:document.getElementById('toggle-tt').checked },
+      urls:    { youtube:document.getElementById('url-yt').value.trim(), facebook:document.getElementById('url-fb').value.trim(), tiktok:document.getElementById('url-tt').value.trim() },
+      stunnel: { facebook:document.getElementById('stunnel-fb').value.trim(), tiktok:document.getElementById('stunnel-tt').value.trim() },
     })});
-    const d=await r.json();
-    if(d.success){st.textContent='Applied ✓';st.className='save-status ok';}
-    else{st.textContent=d.error||'Failed';st.className='save-status err';}
-  }catch(e){st.textContent='Network error';st.className='save-status err';}
-  setTimeout(()=>{st.textContent='';st.className='save-status';},6000);
+    const d = await r.json();
+    if (d.success) { st.textContent='Applied ✓'; st.className='save-status ok'; }
+    else { st.textContent=d.error||'Failed'; st.className='save-status err'; }
+  } catch(e) { st.textContent='Network error'; st.className='save-status err'; }
+  setTimeout(()=>{ st.textContent=''; st.className='save-status'; }, 6000);
 });
 </script>
 <?php endif; ?>
