@@ -37,9 +37,16 @@ echo "www-data ALL=(root) NOPASSWD: $RELOAD_SCRIPT" > /etc/sudoers.d/umbra
 chmod 0440 /etc/sudoers.d/umbra
 visudo -c
 
-echo "==> Setting up rtmp_pushes.conf"
+echo "==> Setting up runtime files"
 touch "$DATA_DIR/rtmp_pushes.conf"
 chown www-data:www-data "$DATA_DIR/rtmp_pushes.conf"
+
+echo "==> Initializing database"
+sudo -u www-data php -r "
+require '$WEB_ROOT/api/db.php';
+new UmbraDB();
+echo 'Database initialized.' . PHP_EOL;
+"
 
 echo "==> Installing nginx site config"
 cp "$REPO_DIR/nginx/umbra.conf" /etc/nginx/sites-available/umbra

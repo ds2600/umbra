@@ -3,7 +3,7 @@ class UmbraDB {
     private PDO $pdo;
 
     public function __construct() {
-        $dbPath = __DIR__ . '/../../data/umbra.db';
+        $dbPath = '/var/lib/umbra/umbra.db';
         $this->pdo = new PDO('sqlite:' . $dbPath);
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->init();

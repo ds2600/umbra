@@ -55,7 +55,7 @@ You set the ingest key in your camera app as the **stream key** field. The RTMP 
 
 ```bash
 cd ~
-git clone https://github.com/YOUR_USERNAME/umbra.git
+git clone https://github.com/ds2600/umbra.git
 cd umbra
 ```
 
@@ -158,7 +158,7 @@ sudo nano /etc/nginx/sites-available/umbra
 
 Uncomment and set your IP:
 ```nginx
-allow 203.0.113.42;
+allow 162.243.123.456; # <-- your IP here`
 deny  all;
 ```
 
