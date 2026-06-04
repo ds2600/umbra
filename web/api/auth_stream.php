@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/db.php';
+require_once '/var/www/umbra/web/api/db.php';
 
 $db        = new UmbraDB();
 $storedKey = $db->get('ingest_key');
@@ -11,10 +11,7 @@ if (empty($storedKey)) {
 }
 
 if (!hash_equals($storedKey, $clientKey)) {
-    error_log(sprintf(
-        '[Umbra] Rejected RTMP ingest from %s — bad key',
-        $_POST['addr'] ?? 'unknown'
-    ));
+    error_log('[Umbra] Rejected RTMP ingest from ' . ($_POST['addr'] ?? 'unknown') . ' — bad key');
     http_response_code(403);
     exit('Invalid ingest key');
 }

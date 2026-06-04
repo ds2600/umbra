@@ -1,7 +1,6 @@
 <?php
 session_start();
 if (empty($_SESSION['authenticated'])) { http_response_code(401); exit; }
-
 header('Content-Type: application/json');
 require_once 'db.php';
 

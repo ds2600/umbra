@@ -3,8 +3,7 @@ class UmbraDB {
     private PDO $pdo;
 
     public function __construct() {
-        $dbPath = '/var/lib/umbra/umbra.db';
-        $this->pdo = new PDO('sqlite:' . $dbPath);
+        $this->pdo = new PDO('sqlite:/var/lib/umbra/umbra.db');
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->init();
     }
@@ -24,9 +23,8 @@ class UmbraDB {
 
         $count = $this->pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
         if ($count == 0) {
-            $hash = password_hash('umbra', PASSWORD_DEFAULT);
             $this->pdo->prepare("INSERT INTO users (username, password) VALUES (?, ?)")
-                ->execute(['admin', $hash]);
+                ->execute(['admin', password_hash('umbra', PASSWORD_DEFAULT)]);
         }
 
         $defaults = [
@@ -49,8 +47,7 @@ class UmbraDB {
     public function getUser(string $username): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->execute([$username]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $row ?: null;
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
     public function get(string $key): ?string {
