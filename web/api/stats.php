@@ -5,9 +5,7 @@ if (empty($_SESSION['authenticated'])) { http_response_code(401); exit; }
 header('Content-Type: application/json');
 
 function getCpuUsage(): float {
-    $s1 = parseCpuLine();
-    usleep(200000);
-    $s2 = parseCpuLine();
+    $s1 = parseCpuLine(); usleep(200000); $s2 = parseCpuLine();
     $totalDiff = array_sum($s2) - array_sum($s1);
     $idleDiff  = $s2[3] - $s1[3];
     if ($totalDiff === 0) return 0.0;
@@ -15,9 +13,9 @@ function getCpuUsage(): float {
 }
 
 function parseCpuLine(): array {
-    $line = '';
     $fh = fopen('/proc/stat', 'r');
-    if ($fh) { $line = fgets($fh); fclose($fh); }
+    $line = $fh ? fgets($fh) : '';
+    if ($fh) fclose($fh);
     $parts = preg_split('/\s+/', trim($line));
     array_shift($parts);
     return array_map('intval', $parts);
@@ -70,14 +68,10 @@ function getNetRaw(): array {
     return ['in' => $in, 'out' => $out];
 }
 
-$cpu = getCpuUsage();
-$mem = getMemory();
-$net = getNetStats();
-
 echo json_encode([
-    'cpu'          => round($cpu, 1),
-    'mem_mb'       => $mem['mb'],
-    'mem_pct'      => $mem['pct'],
-    'net_in_mbps'  => $net['in'],
-    'net_out_mbps' => $net['out'],
+    'cpu'          => round(getCpuUsage(), 1),
+    'mem_mb'       => getMemory()['mb'],
+    'mem_pct'      => getMemory()['pct'],
+    'net_in_mbps'  => getNetStats()['in'],
+    'net_out_mbps' => getNetStats()['out'],
 ]);

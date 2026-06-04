@@ -5,91 +5,85 @@ Umbra is a self-hosted, single-page stream relay control panel. Connect a camera
 
 ---
 
-## What's Inside
+## Repository structure
 
 ```
 umbra/
-├── index.php                  # Single-page app (login + dashboard)
-├── api/
-│   ├── db.php                 # SQLite database layer
-│   ├── auth.php               # Web login / session auth
-│   ├── auth_stream.php        # RTMP ingest key validator (nginx on_publish)
-│   ├── get_config.php         # Load saved keys + settings
-│   ├── apply.php              # Save settings, write nginx include, reload
-│   ├── ingest_status.php      # Real-time RTMP ingest status
-│   └── stats.php              # CPU / memory / network stats
-├── data/                      # SQLite database (auto-created, web-inaccessible)
-├── umbra-reload.sh            # Privileged reload script (root via sudoers)
-└── umbra-nginx.conf           # nginx site block for the control panel
+├── web/                       # nginx root — all web-served files live here
+│   ├── index.php              # Single-page app (login + dashboard)
+│   └── api/
+│       ├── db.php             # SQLite database layer
+│       ├── auth.php           # Web login / session auth
+│       ├── auth_stream.php    # RTMP ingest key validator (nginx on_publish)
+│       ├── get_config.php     # Load saved keys + settings
+│       ├── apply.php          # Save settings, write nginx include, reload
+│       ├── ingest_status.php  # Real-time RTMP ingest status
+│       └── stats.php          # CPU / memory / network stats
+├── data/                      # SQLite database lives here after install
+│                              # (outside web root — never served)
+├── nginx/
+│   └── umbra.conf             # nginx site block for the control panel
+├── scripts/
+│   └── umbra-reload.sh        # Privileged reload script (root via sudoers)
+├── install.sh                 # One-shot installer
+├── update.sh                  # Git pull + sync updater
+└── README.md
 ```
 
 ---
 
 ## How ingest security works
 
-nginx-rtmp's `on_publish` directive fires an HTTP POST to `auth_stream.php` every time a camera tries to connect. The POST includes the stream key the client provided as `name`. If the key matches what's stored in SQLite, the script returns HTTP 200 and nginx allows the stream. Any other response and nginx drops the connection immediately — the camera gets a connection refused.
+nginx-rtmp's `on_publish` directive fires an HTTP POST to `auth_stream.php` every time a camera tries to connect on port 1935. The POST includes the stream key the client provided. If it matches what's in SQLite, the script returns HTTP 200 and nginx allows the stream. Any other response and nginx drops the connection immediately.
 
-You set the ingest key in the **Insta360 app** (or Larix, etc.) as the **stream key** field. The RTMP URL stays as `rtmp://YOUR_SERVER_IP/live`.
-
-You can rotate the key any time from the Umbra dashboard using the Regenerate button, then hit Apply. The old key stops working the moment nginx reloads.
+You set the ingest key in your camera app as the **stream key** field. The RTMP URL stays as `rtmp://YOUR_SERVER_IP/live`. You can rotate the key any time from the Umbra dashboard — the old key stops working the moment nginx reloads.
 
 ---
 
 ## Prerequisites
 
-- Ubuntu 22.04 (or 20.04)
+- Ubuntu 22.04 or 20.04
 - A static IP or domain name
 - Root / sudo access
-- Ports open: **22** (SSH), **1935** (RTMP ingest), **8080** (Umbra UI)
+- Ports to open: **22** (SSH), **1935** (RTMP ingest), **8080** (Umbra UI)
 
 ---
 
-## Step 1 — System update
+## Installation
+
+### Step 1 — Clone the repo
 
 ```bash
-sudo apt update && sudo apt upgrade -y
+cd ~
+git clone https://github.com/YOUR_USERNAME/umbra.git
+cd umbra
 ```
 
----
-
-## Step 2 — Install packages
+### Step 2 — Run the installer
 
 ```bash
-sudo apt install -y software-properties-common
-sudo add-apt-repository ppa:ondrej/php
-sudo apt update
-
-sudo apt install -y nginx libnginx-mod-rtmp php8.1-fpm php8.1-sqlite3 stunnel4
+sudo bash install.sh
 ```
 
-Verify RTMP module is present:
-```bash
-ls /usr/lib/nginx/modules/ | grep rtmp
-# → ngx_rtmp_module.so
-```
+The installer handles: adding the PHP PPA, installing all packages, copying files to `/var/www/umbra/web`, setting up `/var/lib/umbra` for writable runtime files, installing the reload script, configuring sudoers, and enabling the nginx site.
 
----
-
-## Step 3 — Configure nginx
-
-### 3a — Back up and edit the main config
+### Step 3 — Edit the main nginx config
 
 ```bash
-sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
 sudo nano /etc/nginx/nginx.conf
 ```
 
-Near the top, before the `events {}` block, ensure the RTMP module loads:
+Add the RTMP module loader near the top, before the `events {}` block:
 
 ```nginx
 load_module modules/ngx_rtmp_module.so;
 ```
 
-Inside the existing `http {}` block, add the internal stat server:
+Add the internal stat server inside the `http {}` block (uses port 8088 to avoid conflicting with Umbra's UI on 8080):
 
 ```nginx
 server {
-    listen 8080;
+    listen 8088;
     server_name 127.0.0.1;
 
     location /stat {
@@ -100,7 +94,7 @@ server {
 }
 ```
 
-At the **very bottom**, after the closing `}` of the `http {}` block, add the RTMP block:
+Add the RTMP relay block **after** the closing `}` of the `http {}` block:
 
 ```nginx
 rtmp {
@@ -111,37 +105,16 @@ rtmp {
     application live {
       live on;
       record off;
-
-      # Ingest key validation — rejects cameras with wrong key
       on_publish http://127.0.0.1:8080/api/auth_stream.php;
-
-      # Platform push destinations — written by Umbra on Apply
-      include /etc/umbra/rtmp_pushes.conf;
+      include /var/lib/umbra/rtmp_pushes.conf;
     }
   }
 }
 ```
 
-### 3b — Create the nginx include directory
+### Step 4 — Configure stunnel (Facebook RTMPS)
 
-```bash
-sudo mkdir -p /etc/umbra
-sudo touch /etc/umbra/rtmp_pushes.conf
-```
-
-### 3c — Test and reload nginx
-
-```bash
-sudo nginx -t
-sudo systemctl reload nginx
-sudo systemctl enable nginx
-```
-
----
-
-## Step 4 — Configure stunnel (Facebook RTMPS)
-
-Facebook requires RTMPS (RTMP over TLS). stunnel wraps the connection locally.
+Facebook requires RTMPS. stunnel wraps the connection locally.
 
 ```bash
 sudo nano /etc/default/stunnel4
@@ -167,44 +140,29 @@ sudo systemctl enable stunnel4
 sudo systemctl start stunnel4
 ```
 
-Verify:
-```bash
-sudo ss -tlnp | grep 19350
-```
-
----
-
-## Step 5 — Deploy Umbra
-
-### 5a — Copy files to web root
+### Step 5 — Configure UFW
 
 ```bash
-sudo mkdir -p /var/www/umbra
-sudo cp -r /path/to/umbra/* /var/www/umbra/
-sudo mkdir -p /var/www/umbra/data
-sudo chown -R www-data:www-data /var/www/umbra
-sudo chmod 750 /var/www/umbra/data
+sudo ufw allow 22/tcp
+sudo ufw allow 1935/tcp
+sudo ufw allow 8080/tcp
+sudo ufw enable
+sudo ufw status verbose
 ```
 
-### 5b — Install the nginx site config
+### Step 6 — Lock down the UI
 
-```bash
-sudo cp /var/www/umbra/umbra-nginx.conf /etc/nginx/sites-available/umbra
-sudo ln -s /etc/nginx/sites-available/umbra /etc/nginx/sites-enabled/umbra
-```
-
-Lock it down to your IP (strongly recommended):
 ```bash
 sudo nano /etc/nginx/sites-available/umbra
 ```
 
-Uncomment and set:
+Uncomment and set your IP:
 ```nginx
-allow 203.0.113.42;   # your home / office IP
+allow 203.0.113.42;
 deny  all;
 ```
 
-Optional — add HTTP basic auth as a second layer:
+Optional — HTTP basic auth as a second layer:
 ```bash
 sudo apt install -y apache2-utils
 sudo htpasswd -c /etc/nginx/.umbra_htpasswd umbra
@@ -215,53 +173,14 @@ auth_basic           "Umbra";
 auth_basic_user_file /etc/nginx/.umbra_htpasswd;
 ```
 
+### Step 7 — Test and start nginx
+
 ```bash
 sudo nginx -t && sudo systemctl reload nginx
+sudo systemctl enable nginx
 ```
 
----
-
-## Step 6 — Install the reload script
-
-```bash
-sudo cp /var/www/umbra/umbra-reload.sh /usr/local/bin/umbra-reload
-sudo chmod 755 /usr/local/bin/umbra-reload
-sudo chown root:root /usr/local/bin/umbra-reload
-```
-
-Grant `www-data` passwordless sudo for **only this script**:
-
-```bash
-sudo visudo -f /etc/sudoers.d/umbra
-```
-
-Add exactly:
-```
-www-data ALL=(root) NOPASSWD: /usr/local/bin/umbra-reload
-```
-
-Verify:
-```bash
-sudo visudo -c
-```
-
----
-
-## Step 7 — Configure UFW
-
-```bash
-sudo ufw allow 22/tcp      # SSH — do this FIRST
-sudo ufw allow 1935/tcp    # RTMP ingest
-sudo ufw allow 8080/tcp    # Umbra UI
-sudo ufw enable
-sudo ufw status verbose
-```
-
-> If your VPS has a cloud firewall (DigitalOcean, AWS, Vultr), open the same ports there too.
-
----
-
-## Step 8 — First login
+### Step 8 — First login
 
 ```
 http://YOUR_SERVER_IP:8080
@@ -273,63 +192,65 @@ Username: admin
 Password: umbra
 ```
 
-**Change the password immediately:**
+Change the password immediately — use single quotes to prevent shell variable expansion:
 
 ```bash
-cd /var/www/umbra
-php -r "
-require 'api/db.php';
-\$pdo = new PDO('sqlite:data/umbra.db');
-\$hash = password_hash('YOUR_NEW_PASSWORD', PASSWORD_DEFAULT);
-\$pdo->prepare('UPDATE users SET password=? WHERE username=?')->execute([\$hash,'admin']);
-echo 'Password updated.' . PHP_EOL;
-"
+php -r '
+$pdo  = new PDO("sqlite:/var/lib/umbra/umbra.db");
+$hash = password_hash("YOUR_NEW_PASSWORD", PASSWORD_DEFAULT);
+$pdo->prepare("UPDATE users SET password=? WHERE username=?")->execute([$hash,"admin"]);
+echo "Done. Rows: " . $pdo->query("SELECT changes()")->fetchColumn() . PHP_EOL;
+'
 ```
 
+> Always use single quotes around the PHP block when your password contains `$` or other shell special characters. Double-quoted bash strings will silently expand `$variable` references before PHP sees them.
+
 ---
 
-## Step 9 — Set your ingest key
+## Updating from GitHub
 
-On first run, Umbra auto-generates a random 32-character ingest key. You'll see it in the **Ingest Security** section of the dashboard.
+Pull the latest code and apply it in one command:
 
-1. Copy the key (use the Copy button)
-2. In your camera app:
+```bash
+cd ~/umbra
+sudo bash update.sh
+```
+
+`update.sh` does a `git pull`, rsyncs `web/` to the live web root (preserving `data/`), updates the reload script and nginx site config, and reloads nginx. Your database, stream keys, and ingest key are untouched.
+
+---
+
+## Setting your ingest key
+
+On first run, Umbra auto-generates a random 32-character ingest key. Find it in the **Ingest Security** section of the dashboard.
+
+1. Copy the key using the Copy button
+2. In your camera app set:
    - **RTMP URL:** `rtmp://YOUR_SERVER_IP/live`
-   - **Stream key:** *(paste the key from Umbra)*
-3. Click **Apply Changes** to make it active
+   - **Stream key:** *(your Umbra ingest key)*
+3. Click **Apply Changes** to activate
 
-To rotate the key at any time, click **↻ Regenerate**, then Apply. The old key stops working immediately after nginx reloads.
+**Insta360 app:** Live → Custom RTMP → set URL and stream key, bitrate 4–6 Mbps
 
-### Camera app settings
-
-**Insta360 app:**
-- Live → Custom RTMP
-- Server URL: `rtmp://YOUR_SERVER_IP/live`
-- Stream key: *(your Umbra ingest key)*
-- Bitrate: 4–6 Mbps
-
-**Larix Broadcaster (iOS/Android — good for testing):**
-- Settings → Connections → Add connection
-- URL: `rtmp://YOUR_SERVER_IP/live/YOUR_INGEST_KEY`
-  *(Larix appends the key to the URL path rather than a separate field)*
+**Larix Broadcaster:** Settings → Connections → Add connection → URL: `rtmp://YOUR_SERVER_IP/live/YOUR_KEY` *(Larix appends the key to the path)*
 
 ---
 
-## Step 10 — Set your platform stream keys
+## Setting platform stream keys
 
-In the **Platforms** section of the dashboard, enter the stream key for each platform you want to push to. Toggle platforms on or off individually.
+Enter keys in the **Platforms** section and hit **Apply Changes**.
 
-**YouTube:** studio.youtube.com → Create → Go Live → Stream → enable "Reuse stream key" for a permanent key
+**YouTube:** studio.youtube.com → Create → Go Live → Stream → enable **"Reuse stream key"** for a permanent key
 
-**Facebook:** facebook.com/live/producer → Go Live → Streaming software → copy stream key (expires after 7 days of inactivity — regenerate before each event)
+**Facebook:** facebook.com/live/producer → Go Live → Streaming software → copy stream key. Keys expire after 7 days of inactivity — grab a fresh one before each event
 
-**TikTok:** Requires 1,000+ followers. Open TikTok app → + → Live → Cast/PC streaming → copy key (session-based, grab fresh before each stream)
+**TikTok:** Requires 1,000+ followers. TikTok app → + → Live → Cast/PC streaming → copy key. Keys are session-based — get one right before going live
 
 ---
 
-## nginx config reference
+## Full nginx.conf reference
 
-**Full `/etc/nginx/nginx.conf` structure:**
+Complete structure after all edits:
 
 ```nginx
 load_module modules/ngx_rtmp_module.so;
@@ -337,16 +258,22 @@ load_module modules/ngx_rtmp_module.so;
 user www-data;
 worker_processes auto;
 pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
 
 events {
-    worker_connections 1024;
+    worker_connections 768;
 }
 
 http {
-    # ... default http settings ...
+    # ... leave all default http block content intact ...
 
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
+
+    # Internal RTMP stat endpoint — port 8088, loopback only
+    # Do NOT use 8080 here — that's the Umbra UI port
     server {
-        listen 8080;
+        listen 8088;
         server_name 127.0.0.1;
         location /stat {
             rtmp_stat all;
@@ -356,24 +283,19 @@ http {
     }
 }
 
+# RTMP relay — outside and after the http {} block
 rtmp {
     server {
         listen 1935;
         chunk_size 4096;
-
         application live {
             live on;
             record off;
             on_publish http://127.0.0.1:8080/api/auth_stream.php;
-            include /etc/umbra/rtmp_pushes.conf;
+            include /var/lib/umbra/rtmp_pushes.conf;
         }
     }
 }
-```
-
-**`/etc/umbra/rtmp_pushes.conf`** is written by Umbra on every Apply. View it:
-```bash
-cat /etc/umbra/rtmp_pushes.conf
 ```
 
 ---
@@ -382,54 +304,79 @@ cat /etc/umbra/rtmp_pushes.conf
 
 **Camera connects but immediately drops**
 ```bash
-# Check auth_stream.php is reachable from loopback
-curl -X POST http://127.0.0.1:8080/api/auth_stream.php -d "name=testkey&app=live&addr=127.0.0.1"
-# Should return 403 for a wrong key, 200 for the correct one
+# Test the auth endpoint directly
+curl -X POST http://127.0.0.1:8080/api/auth_stream.php \
+  -d "name=YOUR_INGEST_KEY&app=live&addr=127.0.0.1"
+# 200 = good, 403 = wrong key, 404 = routing problem
 
-# Watch nginx error log for on_publish failures
 sudo tail -f /var/log/nginx/error.log
 ```
 
-**Ingest shows red / no signal**
+**Ingest indicator always red**
 ```bash
-sudo ss -tlnp | grep 1935
-sudo ufw status
-sudo tail -f /var/log/nginx/error.log
-```
+# Confirm stat endpoint is on 8088
+curl http://127.0.0.1:8088/stat
+# Should return XML
 
-**Apply Changes fails**
-```bash
-sudo -u www-data sudo /usr/local/bin/umbra-reload
+sudo ss -tlnp | grep 8088
 sudo nginx -t
-sudo cat /etc/sudoers.d/umbra
 ```
 
-**Facebook push failing (RTMPS)**
+**Apply Changes fails / rtmp_pushes.conf stays empty**
+```bash
+# Check permissions on /var/lib/umbra
+ls -la /var/lib/umbra/
+# rtmp_pushes.conf must be owned by www-data
+
+sudo chown www-data:www-data /var/lib/umbra/rtmp_pushes.conf
+
+# Test the reload script as www-data
+sudo -u www-data sudo /usr/local/bin/umbra-reload
+
+# Check sudoers permissions (must be exactly 0440)
+ls -la /etc/sudoers.d/umbra
+sudo chmod 0440 /etc/sudoers.d/umbra && sudo visudo -c
+```
+
+**Facebook push not working**
 ```bash
 sudo systemctl status stunnel4
 sudo ss -tlnp | grep 19350
-cat /etc/stunnel/stunnel.conf
+
+# Manually write the push conf to test
+sudo -u www-data bash -c 'echo "      push rtmp://127.0.0.1:19350/rtmp/YOUR_FB_KEY;" > /var/lib/umbra/rtmp_pushes.conf'
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
-**PHP errors / blank page**
+**PHP errors / simplexml missing**
+```bash
+sudo apt install -y php8.1-xml
+sudo systemctl restart php8.1-fpm
+php -m | grep SimpleXML
+```
+
+**Blank page / 500 errors**
 ```bash
 sudo tail -f /var/log/php8.1-fpm.log
 sudo tail -f /var/log/nginx/error.log
-ls -la /var/www/umbra/data/   # should be owned by www-data
+ls -la /var/www/umbra/web/
+ls -la /var/lib/umbra/
+# All files should be owned by www-data
 ```
 
 ---
 
 ## Security checklist
 
-- [ ] Default admin password changed
+- [ ] Default admin password changed (use single quotes in the PHP command)
 - [ ] Ingest key set and tested with camera app
-- [ ] IP allowlist configured in nginx site config
+- [ ] IP allowlist configured in `/etc/nginx/sites-available/umbra`
 - [ ] HTTP basic auth enabled as second factor
 - [ ] UFW enabled with only ports 22, 1935, 8080 open
-- [ ] Cloud firewall matches UFW rules
-- [ ] `/var/www/umbra/data/` not web-accessible (nginx denies it)
-- [ ] `auth_stream.php` restricted to 127.0.0.1 in nginx config
+- [ ] Cloud firewall matches UFW if on DigitalOcean / AWS / Vultr
+- [ ] `/var/lib/umbra/` owned by www-data, not readable by others
+- [ ] `auth_stream.php` restricted to 127.0.0.1 in nginx site config
+- [ ] `/etc/sudoers.d/umbra` permissions are exactly `0440`
 
 ---
 

@@ -4,7 +4,7 @@ if (empty($_SESSION['authenticated'])) { http_response_code(401); exit; }
 
 header('Content-Type: application/json');
 
-$xml = @file_get_contents('http://127.0.0.1:8080/stat');
+$xml = @file_get_contents('http://127.0.0.1:8088/stat');
 if (!$xml) {
     echo json_encode(['connected' => false, 'bitrate_kbps' => 0]);
     exit;
